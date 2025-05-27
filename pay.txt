@@ -1,0 +1,373 @@
+**Police Service Online Portal**
+
+This portal allows citizens to:
+
+1. Pay fines online (e.g., traffic fine).
+2. Apply for permits (e.g., event permit, weapon permit).
+
+**File Structure**
+
+```
+/                    -- Document root
+  config.php             -> Database connection
+  index.php              -> Home page
+  pay_fine.php           -> Fine payment form & processing
+  apply_permit.php       -> Permit application form & processing
+  db_schema.sql          -> Database schema for crime_db
+/css
+  style.css              -> Custom styles
+/js
+  main.js                -> Optional JavaScript (currently unused)
+/uploads                -> Uploaded documents
+```
+
+---
+
+### config.php
+
+```php
+<?php
+// config.php
+// Database credentials for crime_db
+define('DB_HOST', 'localhost');
+define('DB_USER', 'your_db_user');
+define('DB_PASSWORD', 'your_db_pass');
+define('DB_NAME', 'crime_db');
+
+/**
+ * Returns a mysqli connection to the crime_db database.
+ * Dies with an error message if the connection fails.
+ */
+function getDbConnection() {
+    $conn = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+    if ($conn->connect_error) {
+        die('Database connection failed: ' . $conn->connect_error);
+    }
+    $conn->set_charset('utf8mb4');
+    return $conn;
+}
+```
+
+---
+
+### index.php
+
+````php
+<?php
+// index.php
+session_start();
+require_once 'config.php';
+
+// Fetch summary stats
+$conn = getDbConnection();
+// Count total fine payments
+\$res1 = \$conn->query("SELECT COUNT(*) AS cnt FROM fine_payments");
+\$paymentCount = \$res1->fetch_assoc()['cnt'] ?? 0;
+// Count total permit applications
+\$res2 = \$conn->query("SELECT COUNT(*) AS cnt FROM permits");
+\$permitCount = \$res2->fetch_assoc()['cnt'] ?? 0;
+$conn->close();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Police Service Portal</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand" href="index.php"><i class="fas fa-shield-alt"></i> Police Portal</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="pay_fine.php">Pay Fine</a></li>
+        <li class="nav-item"><a class="nav-link" href="apply_permit.php">Apply Permit</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container my-5 text-center">
+  <h1>Welcome to the Police Service Portal</h1>
+  <p class="lead">Pay fines and apply for permits quickly and securely.</p>
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Total Fines Paid</h5>
+          <p class="card-text display-4"><?= \$paymentCount ?></p>
+          <a href="pay_fine.php" class="btn btn-success">Pay More Fines</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">Permit Applications</h5>
+          <p class="card-text display-4"><?= \$permitCount ?></p>
+          <a href="apply_permit.php" class="btn btn-warning">New Permit</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- FontAwesome -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>
+```php
+<?php
+// index.php
+session_start();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Police Service Portal</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand" href="index.php"><i class="fas fa-shield-alt"></i> Police Portal</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="pay_fine.php">Pay Fine</a></li>
+        <li class="nav-item"><a class="nav-link" href="apply_permit.php">Apply Permit</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container my-5 text-center">
+  <h1>Welcome to the Police Service Portal</h1>
+  <p class="lead">Pay fines and apply for permits quickly and securely.</p>
+  <a href="pay_fine.php" class="btn btn-success me-2">Pay Fine</a>
+  <a href="apply_permit.php" class="btn btn-warning">Apply for Permit</a>
+</div>
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- FontAwesome -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
+</html>
+````
+
+---
+
+### pay\_fine.php
+
+```php
+<?php\session_start();
+require_once 'config.php';
+$errors = [];\$success = '';
+if (\$_SERVER['REQUEST_METHOD'] === 'POST') {
+    \$license = trim(\$_POST['license'] ?? '');
+    \$fine_id = intval(\$_POST['fine_id'] ?? 0);
+    \$amount  = floatval(\$_POST['amount'] ?? 0);
+    if (empty(\$license) || \$fine_id <= 0 || \$amount <= 0) {
+        \$errors[] = 'All fields are required and must be valid.';
+    }
+    if (empty(\$errors)) {
+        \$conn = getDbConnection();
+        \$stmt = \$conn->prepare(
+            "INSERT INTO fine_payments (license_no, fine_id, amount_paid) VALUES (?, ?, ?)"
+        );
+        \$stmt->bind_param('sid', \$license, \$fine_id, \$amount);
+        if (\$stmt->execute()) {
+            \$success = 'Payment successful. Transaction ID: ' . \$stmt->insert_id;
+        } else {
+            \$errors[] = 'Payment failed: ' . \$stmt->error;
+        }
+        \$stmt->close();
+        \$conn->close();
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pay Fine | Police Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand" href="index.php">Police Portal</a>
+  </div>
+</nav>
+<div class="container my-5">
+  <h2>Pay Fine</h2>
+  <?php if (!empty(\$errors)): ?>
+    <div class="alert alert-danger"><ul>
+      <?php foreach (\$errors as \$e): ?><li><?=htmlspecialchars(\$e)?></li><?php endforeach; ?>
+    </ul></div>
+  <?php endif; ?>
+  <?php if (\$success): ?>
+    <div class="alert alert-success"><?=htmlspecialchars(\$success)?></div>
+  <?php endif; ?>
+  <form method="POST">
+    <div class="mb-3">
+      <label class="form-label">License No.</label>
+      <input type="text" name="license" class="form-control" value="<?=htmlspecialchars(\$_POST['license'] ?? '')?>" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Fine ID</label>
+      <input type="number" name="fine_id" class="form-control" value="<?=htmlspecialchars(\$_POST['fine_id'] ?? '')?>" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Amount ($)</label>
+      <input type="number" step="0.01" name="amount" class="form-control" value="<?=htmlspecialchars(\$_POST['amount'] ?? '')?>" required>
+    </div>
+    <button type="submit" class="btn btn-success">Submit Payment</button>
+    <a href="index.php" class="btn btn-secondary ms-2">Back</a>
+  </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+```
+
+---
+
+### apply\_permit.php
+
+````php
+<?php
+session_start();
+require_once 'config.php';
+$errors = [];\$success = '';
+if (\$_SERVER['REQUEST_METHOD'] === 'POST') {
+    \$name = trim(\$_POST['name'] ?? '');
+    \$permit_type = trim(\$_POST['permit_type'] ?? '');
+    \$details = trim(\$_POST['details'] ?? '');
+    // optional file upload
+    \$support_doc_path = '';
+    if (!empty(\$_FILES['support_doc']['tmp_name'])) {
+        \$uploadDir = __DIR__ . '/uploads/';
+        if (!is_dir(\$uploadDir)) mkdir(\$uploadDir, 0755, true);
+        \$orig = basename(\$_FILES['support_doc']['name']);
+        \$new  = time() . '_' . mt_rand() . '_' . \$orig;
+        if (move_uploaded_file(\$_FILES['support_doc']['tmp_name'], \$uploadDir . \$new)) {
+            \$support_doc_path = 'uploads/' . \$new;
+        }
+    }
+    if (!\$name || !\$permit_type) {
+        \$errors[] = 'Name and permit type are required.';
+    }
+    if (empty(\$errors)) {
+        \$conn = getDbConnection();
+        \$stmt = \$conn->prepare(
+            "INSERT INTO permits (applicant_name, permit_type, details, support_doc) VALUES (?, ?, ?, ?)"
+        );
+        \$stmt->bind_param('ssss', \$name, \$permit_type, \$details, \$support_doc_path);
+        if (\$stmt->execute()) {
+            \$success = 'Application received. Reference ID: ' . \$stmt->insert_id;
+        } else {
+            \$errors[] = 'Submission failed: ' . \$stmt->error;
+        }
+        \$stmt->close();
+        \$conn->close();
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Apply Permit | Police Portal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container">
+    <a class="navbar-brand" href="index.php">Police Portal</a>
+  </div>
+</nav>
+<div class="container my-5">
+  <h2>Apply for a Permit</h2>
+  <?php if (!empty(\$errors)): ?>
+    <div class="alert alert-danger"><ul>
+      <?php foreach (\$errors as \$e): ?><li><?=htmlspecialchars(\$e)?></li><?php endforeach; ?>
+
+---
+
+### index.html
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Police NSW CMS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome for icons -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <!-- Animate.css for simple animations -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">Police NSW CMS</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="index.php">Portal Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#alerts">Alerts</a></li>
+        <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+        <li class="nav-item"><a class="nav-link" href="#connect">Connect</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+        <li class="nav-item"><a class="btn btn-outline-light me-2" href="register.php">Register</a></li>
+        <li class="nav-item"><a class="btn btn-outline-light" href="login.php">Login</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<header>
+  <div class="container text-center">
+    <h1 class="display-3 animate__animated animate__fadeInDown">Welcome to Police NSW CMS</h1>
+    <p class="lead animate__animated animate__fadeInUp">Securely track, report, and manage crime data in NSW.</p>
+    <a href="login.php" class="btn btn-light btn-lg mt-3 me-2">Login</a>
+    <a href="report.php" class="btn btn-outline-light btn-lg mt-3 me-2">View Reports</a>
+    <a href="index.php" class="btn btn-success btn-lg mt-3">Go to Portal</a>
+  </div>
+</header>
+
+<!-- Rest of sections unchanged -->
+...
+````
